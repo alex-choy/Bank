@@ -8,6 +8,10 @@ public class Transaction {
 		if (acct1 != -1) {
 			this.acct1 = accounts[acct1];
 		}
+		else {
+			this.acct1 = new Account(-1);
+		}
+			
 		this.acct2 = accounts[acct2];
 		this.amount = amount;
 	}

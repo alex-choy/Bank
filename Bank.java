@@ -11,103 +11,93 @@ import java.util.concurrent.Semaphore;
 public class Bank {
 	private static final int NUMBER_OF_ACCOUNTS = 20;
 	private Account[] accounts;
-	static BlockingQueue<Transaction> queue;
-	private static CountDownLatch count;
+	private BlockingQueue<Transaction> queue;
+	private  CountDownLatch count;
+	private Semaphore sem;
 
+	//*************************************************************************************************************
 	public static void main(String args[]) throws FileNotFoundException, InterruptedException {
-		Bank bank = new Bank();
-		int numOfWorkers = Integer.parseInt("4");
-		queue = new ArrayBlockingQueue<>(3);
-		count = new CountDownLatch(1);
+		String fileToRead = args[0];
+		int numOfWorkers = Integer.parseInt(args[1]);
+		Bank bank = new Bank(numOfWorkers);
 
-		MainWorker mainWorker = new MainWorker(queue, bank, numOfWorkers);
+		MainWorker mainWorker = new MainWorker(bank, numOfWorkers, fileToRead);
 
-		bank.runParallel(11);
+		bank.runParallel(numOfWorkers);
 		Thread mainThread = new Thread(mainWorker);
-		// Thread workThread1 = new Thread(bank.new Worker());
-
-		// workThread1.start();
+		
 		mainThread.start();
 
-		try {
-			// workThread1.join();
-		} catch (Exception e) {
-
-		}
-		/*
-		 * try { workThread1.join(); mainThread.join(); } catch (Exception e) {
-		 * 
-		 * }
-		 */
-		count.await();
 		bank.printValues();
 	}
-
-	public Bank() {
+	//*************************************************************************************************************
+	
+	
+	public Bank(int numOfWorkers) {
 		accounts = new Account[NUMBER_OF_ACCOUNTS];
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++) {
 			accounts[i] = new Account(i);
 		}
+
+		queue = new ArrayBlockingQueue<>(6);
+		count = new CountDownLatch(numOfWorkers);
+		sem = new Semaphore(6);
 	}
 
-	// TODO: Methods for:
-	// Starting up Worker Threads
-	// Reading transactions from the file (Start up worker threads before
-	// reading transactions)
-	// Printing out all the account values when everything is done
-
-	public void printValues() {
+	public void printValues() throws InterruptedException {	
+		count.await();
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++) {
 			System.out.println(this.accounts[i].toString());
 		}
 	}
 
-	public void readInTransactions(BlockingQueue<Transaction> q, int numOfWorkers) throws FileNotFoundException, InterruptedException {
-		Scanner in = new Scanner(new File("small.txt"));
+	public void readInTransactions(String fileToRead, int numOfWorkers)
+			throws FileNotFoundException, InterruptedException {
+		Scanner in = new Scanner(new File(fileToRead));
 		while (in.hasNextLine()) {
 			int id1 = Integer.parseInt(in.next());
 			int id2 = Integer.parseInt(in.next());
 			int amount = Integer.parseInt(in.next());
 
 			Transaction trans = new Transaction(id1, id2, amount, accounts);
-			q.put(trans);
+			queue.put(trans);
 		}
-		
-		for(int i = 0; i < numOfWorkers; i++){
+
+		for (int i = 0; i < numOfWorkers; i++) {
 			Transaction e = new Transaction(-1, 0, 0, accounts);
-			q.put(e);
+			queue.put(e);
 		}
 
 		in.close();
 	}
 
-	public void runParallel(int workers) {
+	public void runParallel(int workers) throws InterruptedException {
 		List<Worker> theWorkers = new ArrayList<Worker>();
 		for (int i = 0; i < workers; i++) {
 			Worker worker = new Worker();
 			theWorkers.add(worker);
 			worker.start();
 		}
-
 	}
 
 	class Worker extends Thread {
 		public void run() {
+			
 			boolean finished = false;
-			//while (!finished) {
+			while (!finished) 
 				try {
+					sem.acquire();
 					Transaction trans = queue.take();
-					if (trans.getAcct1().getID() == (-1)) {
+					if (trans.getAcct1().getID() < 0) {
 						finished = true;
 						count.countDown();
 					} else {
 						trans.makeTransaction();
 					}
-					// count.countDown();
-
+					sem.release();
 				} catch (Exception e) {
 
-				//}
+				
 			}
 		}
 	}
