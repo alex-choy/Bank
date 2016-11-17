@@ -5,13 +5,11 @@ public class Transaction {
 	private int amount;
 
 	public Transaction(int acct1, int acct2, int amount, Account[] accounts) {
-		if (acct1 != -1) {
+		if (acct1 != -1)
 			this.acct1 = accounts[acct1];
-		}
-		else {
+		else
 			this.acct1 = new Account(-1);
-		}
-			
+
 		this.acct2 = accounts[acct2];
 		this.amount = amount;
 	}

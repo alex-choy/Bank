@@ -12,24 +12,11 @@ public class Bank {
 	private static final int NUMBER_OF_ACCOUNTS = 20;
 	private Account[] accounts;
 	private BlockingQueue<Transaction> queue;
-	private  CountDownLatch count;
+	private CountDownLatch count;
 	private Semaphore sem;
 
 	//*************************************************************************************************************
-	public static void main(String args[]) throws FileNotFoundException, InterruptedException {
-		String fileToRead = args[0];
-		int numOfWorkers = Integer.parseInt(args[1]);
-		Bank bank = new Bank(numOfWorkers);
-
-		MainWorker mainWorker = new MainWorker(bank, numOfWorkers, fileToRead);
-
-		bank.runParallel(numOfWorkers);
-		Thread mainThread = new Thread(mainWorker);
-		
-		mainThread.start();
-
-		bank.printValues();
-	}
+	
 	//*************************************************************************************************************
 	
 	
@@ -39,7 +26,7 @@ public class Bank {
 			accounts[i] = new Account(i);
 		}
 
-		queue = new ArrayBlockingQueue<>(6);
+		queue = new ArrayBlockingQueue<>(12);
 		count = new CountDownLatch(numOfWorkers);
 		sem = new Semaphore(6);
 	}
