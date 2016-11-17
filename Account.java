@@ -24,11 +24,11 @@ public class Account {
 		return transactions;
 	}
 	
-	public void setBalance(int amount){
-		balance = balance + amount;
+	public synchronized void setBalance(int amount){
+		balance += amount;
 	}
 	
-	public void incrementTransactions(){
+	public synchronized void incrementTransactions(){
 		transactions++;
 	}
 	
