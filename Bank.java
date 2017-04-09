@@ -15,10 +15,6 @@ public class Bank {
 	private CountDownLatch count;
 	private Semaphore sem;
 
-	//*************************************************************************************************************
-	
-	//*************************************************************************************************************
-	
 	
 	public Bank(int numOfWorkers) {
 		accounts = new Account[NUMBER_OF_ACCOUNTS];
